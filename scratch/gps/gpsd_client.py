@@ -5,9 +5,17 @@ import serial
 import sys
 import gps
 import curses
+import argparse
 
-host = sys.argv[1]
-port = sys.argv[2]
+# Specify non-positional (with the --) arguments, with defaults. Positional arguments are always required. 
+parser = argparse.ArgumentParser(description='Monitor gpsd')
+parser.add_argument('--host', default="localhost", help="hostname")
+parser.add_argument('--port', default="2947", help="port number")
+
+args = vars(parser.parse_args()) # parse sys.argv and convert to dict with 'vars()'
+
+host = args["host"]
+port = args["port"]
 
 # Helper method to work around the fact python doesnt' support i++ syntax
 def _i():
