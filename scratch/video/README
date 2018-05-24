@@ -1,0 +1,6 @@
+To run fswebcam:
+
+$ sudo apt-get install fswebcam
+$ fswebcam -c fswebcam.conf
+
+More details here: https://goo.gl/Hpi1Au
