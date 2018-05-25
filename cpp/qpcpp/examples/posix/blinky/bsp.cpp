@@ -42,6 +42,7 @@
 #include <termios.h>
 #include <unistd.h>
 
+// This extern "C" is required because roboticscape.h does not wrap it's declarations in extern "C"
 extern "C"
 {
 	#include <roboticscape.h>

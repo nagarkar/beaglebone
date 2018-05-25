@@ -1,55 +1,56 @@
 cmake_minimum_required (VERSION 2.6)
 
+###### Project Options #########
+# Do you want to run QSPY on this application?
 option(QSPY_ENABLED "Should we pull QSPY sources?" OFF)
 
-message("Starting CMake...")
-
+###### Project properties and lib dependencies ###### 
 project (blinky C CXX)
+set(SOURCES blinky.cpp bsp.cpp main.cpp)
 
-message("Find required packages...")
-# None
-
-message("Find required libs")
-find_library(ROBOTICSCAPE roboticscape required)
-message("Found roboticscape library here: ${ROBOTICSCAPE}")
-
-
-set(QPCPP "${CMAKE_SOURCE_DIR}/../../../")
-message("Set QP locations starting from ${QPCPP}")
-set(QP_PORT_SRC_DIR ${QPCPP}/ports/posix)
-
-# Robotics Cape directories
-#set(RC_LIB_SRC_DIR "~/workspace/beaglebone/Robotics_Cape_Installer/library/")
-
-
-if(QSPY_ENABLED)
-  set(QS_SRC_DIR ${QPCPP}/src/qs)
-  add_definitions(-DQ_SPY)
-endif()
-
-set(QP_SRC_DIR ${QPCPP}/src/qf)
+message("Finding required libs")
+	find_library(ROBOTICSCAPE roboticscape required)
+	find_library(RT rt required)
+	find_library(M m required)
+	message("Found roboticscape library here: ${ROBOTICSCAPE}")
+	message("Found librt library here: ${RT}")
+	message("Found libm library here: ${M}")
 
 message("Set Compiler and linker flags...")
-set(CMAKE_CXX_FLAGS "-fno-rtti -fno-exceptions -ffunction-sections -fdata-sections \
+	set(CMAKE_CXX_FLAGS "-fno-rtti -fno-exceptions -ffunction-sections -fdata-sections \
         -Os -Wall -W -pthread -DNDEBUG \
         -DQP_API_VERSION=9999")
 
-set(CMAKE_C_FLAGS "-ffunction-sections -fdata-sections \
+	set(CMAKE_C_FLAGS "-ffunction-sections -fdata-sections \
         -Os -Wall -W -pthread -DNDEBUG \
         -DQP_API_VERSION=9999")
 
-set(CMAKE_EXE_LINKER_FLAGS, "-Wl,-Map,${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.map,--cref,--gc-sections")
+	set(CMAKE_EXE_LINKER_FLAGS, "-Wl,-Map,${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.map,--cref,--gc-sections")
 
-message("Include directories...")
-include_directories(${QPCPP}/include)
-#include_directories(${RC_LIB_SRC_DIR}/include)
+
+###### QP Configuration ###### 
+# Fix QPCPP location
+if(NOT EXISTS "$ENV{QPCPP}")
+  # Change this to point to your local directory if required.
+  message("Could not find QPCPP environment variable, using alternative...")
+  set(QPCPP_SRC "${CMAKE_SOURCE_DIR}/../../../")
+else()
+  message("Found QPCPP environment variable $ENV{QPCPP}...")
+  set(QPCPP_SRC $ENV{QPCPP})
+endif()
+
+message("Set QP source directories based on ${QPCPP_SRC}")
+set(QP_PORT_SRC_DIR ${QPCPP_SRC}/ports/posix)
+if(QSPY_ENABLED)
+  set(QS_SRC_DIR ${QPCPP_SRC}/src/qs)
+  add_definitions(-DQ_SPY)
+endif()
+set(QP_SRC_DIR ${QPCPP_SRC}/src/qf)
+
+message("Set QP header includes")
+include_directories(${QPCPP_SRC}/include)
 include_directories(${QP_PORT_SRC_DIR})
-include_directories(.)
-include_directories(${QPCPP}/src)
-
-message("Identify all sources...")
-
-set (SOURCES blinky.cpp bsp.cpp main.cpp)
+include_directories(${QPCPP_SRC}/src)
 
 if(QSPY_ENABLED)
   set(QS_SRCS
@@ -78,6 +79,7 @@ list(APPEND SOURCES
   ${QP_SRCS}
   ${QS_SRCS}
 )
-#add_executable(blinky ${SOURCES} ${QP_SRCS} ${QS_SRCS})
+
+###### Binaries and linking ###### 
 add_executable(blinky ${SOURCES})
 target_link_libraries(blinky PUBLIC roboticscape rt m)
