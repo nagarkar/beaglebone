@@ -1,0 +1,25 @@
+syntax = "proto3";
+ 
+ option java_multiple_files = true;
+ option java_package = "ppcbs.grpc.telemetry";
+ option java_outer_classname = "TelemetryService";
+ 
+ package telemetry;
+ 
+ // Interface exported by the server.
+ service TelemetryService {
+   // Simple RPC
+   rpc GetAttitudeQ(AttitudeQRequest) returns (AttitudeQResponse) {}
+ 
+   // Server to client streaming RPC
+   rpc GetAttitudeStream(AttitudeQRequest) returns (stream AttitudeQResponse) {}
+ }
+ 
+ message AttitudeQRequest {}
+
+ message AttitudeQResponse {
+   float Qc = 1;
+   float Qx= 2;
+   float Qy= 3;
+   float Qz= 4;
+ }
