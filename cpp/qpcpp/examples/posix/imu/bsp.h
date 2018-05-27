@@ -34,11 +34,20 @@
 #ifndef bsp_h
 #define bsp_h
 
-uint32_t const BSP_TICKS_PER_SEC = static_cast<uint32_t>(1000);
+uint32_t const QP_CLOCK_PERIOD_MS			= static_cast<uint32_t>(1);
+uint32_t const BSP_TICKS_PER_SEC			= QP_CLOCK_PERIOD_MS * 1000;	/* 1 sec = 1000 ms */
+
+uint32_t const AHRS_CLOCK_PERIOD_MS			= static_cast<uint32_t>(10);	/* We want to measure IMU every 10 ms*/
+uint32_t const AHRS_TICKS					= AHRS_CLOCK_PERIOD_MS/QP_CLOCK_PERIOD_MS;
+
+uint32_t const BLINKY_CLOCK_PERIOD_MS		= static_cast<uint32_t>(1000);	/* We want to blink every sec */
+uint32_t const BLINKY_TICKS					= BLINKY_CLOCK_PERIOD_MS / QP_CLOCK_PERIOD_MS;
+
 
 void BSP_init(void);
 void BSP_ledOff(void);
 void BSP_ledOn(void);
 void BSP_PublishAttitude(void);
+void BSP_SetupIMU(void);
 
 #endif // bsp_h

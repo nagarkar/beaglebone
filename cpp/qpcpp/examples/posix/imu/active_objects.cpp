@@ -20,6 +20,16 @@
 #include "bsp.h"   // Board Support Package interface
 #include "active_objects.h"
 
+/**
+ * This file contains teh following format:
+ * <declaration of AO type>
+ * <declaration of local variable of the type>
+ *
+ * This way, the order of declarations matters, and earlier variables can be used later.
+ *
+ * At teh end of the file, all the variables are declared as opaque pointers to QActive objects,
+ * and used elsewhere, for instance, to start the AO in the main program.
+**/
 using namespace QP;
 
 //$declare${AOs::Blinky} #####################################################
@@ -37,6 +47,8 @@ protected:
     static QP::QState on(Blinky * const me, QP::QEvt const * const e);
 };
 //$enddecl${AOs::Blinky} #####################################################
+Blinky l_blinky;
+
 //$declare${AOs::AHRS} #######################################################
 //${AOs::AHRS} ...............................................................
 class AHRS : public QP::QActive {
@@ -51,16 +63,7 @@ protected:
     static QP::QState RUNNING(AHRS * const me, QP::QEvt const * const e);
 };
 //$enddecl${AOs::AHRS} #######################################################
-
-
-/********* Local Objects ******************/
-Blinky l_blinky;
 AHRS l_ahrs;
-
-/********* Global objects ******************/
-// Opaque pointers
-QActive * const AO_Blinky = &l_blinky;
-QActive * const AO_AHRS = &l_ahrs;
 
 
 // ask QM to define the Blinky class (including the state machine) -----------
@@ -73,7 +76,7 @@ QActive * const AO_AHRS = &l_ahrs;
 //${AOs::Blinky::Blinky} .....................................................
 Blinky::Blinky()
   : QActive(Q_STATE_CAST(&Blinky::initial)),
-    m_timeEvt(this, TIMEOUT_SIG, 0U)
+    m_timeEvt(this, TIMEOUT_SIG)
 {}
 
 //${AOs::Blinky::SM} .........................................................
@@ -81,8 +84,7 @@ QP::QState Blinky::initial(Blinky * const me, QP::QEvt const * const e) {
     //${AOs::Blinky::SM::initial}
     // arm the private time event to expire in 1/2s
     // and periodically every 1/2 second
-    me->m_timeEvt.armX(BSP_TICKS_PER_SEC/2,
-                       BSP_TICKS_PER_SEC/2);
+    me->m_timeEvt.armX(BLINKY_TICKS, BLINKY_TICKS);
     return Q_TRAN(&off);
 }
 //${AOs::Blinky::SM::off} ....................................................
@@ -135,13 +137,15 @@ QP::QState Blinky::on(Blinky * const me, QP::QEvt const * const e) {
 //${AOs::AHRS::AHRS} .........................................................
 AHRS::AHRS()
   : QActive(Q_STATE_CAST(&AHRS::initial)),
-    m_timeEvt(this, TIMEOUT_SIG, 0U)
+    m_timeEvt(this, TIMEOUT_SIG)
 {}
 
 //${AOs::AHRS::SM} ...........................................................
 QP::QState AHRS::initial(AHRS * const me, QP::QEvt const * const e) {
     //${AOs::AHRS::SM::initial}
-    me->m_timeEvt.armX(10, 10);
+    me->m_timeEvt.armX(AHRS_TICKS, AHRS_TICKS);
+
+    BSP_SetupIMU();
     return Q_TRAN(&RUNNING);
 }
 //${AOs::AHRS::SM::RUNNING} ..................................................
@@ -162,3 +166,7 @@ QP::QState AHRS::RUNNING(AHRS * const me, QP::QEvt const * const e) {
     return status_;
 }
 //$enddef${AOs::AHRS} ########################################################
+
+// Opaque pointers
+QActive * const AO_Blinky = &l_blinky;
+QActive * const AO_AHRS = &l_ahrs;

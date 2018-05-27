@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\bsp.cpp" />
+    <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\qp_plugs.cpp">
+      <Filter>generated</Filter>
+    </ClCompile>
+    <ClCompile Include="..\active_objects.cpp">
+      <Filter>generated</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\bsp.h" />
+    <ClInclude Include="..\active_objects.h">
+      <Filter>generated</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="generated">
+      <UniqueIdentifier>{531de992-3a3e-4682-8580-cb4bf34ff559}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

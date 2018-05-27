@@ -47,13 +47,13 @@ int main() {
     // dynamic event allocation not used, no call to QF::poolInit()
 
     // instantiate and start the active objects...
-    AO_Blinky->start(1U,                            // priority
+    AO_Blinky->start(1U,                            // priority (must be unique)
                      blinkyQSto, Q_DIM(blinkyQSto), // event queue
                      (void *)0, 0U);                // stack (unused)
 
-	AO_AHRS->start(1U,                            // priority
-		ahrsQSto, Q_DIM(ahrsQSto), // event queue
-		(void *)0, 0U);                // stack (unused)
+	AO_AHRS->start(2U,								// priority (must be unique)
+					ahrsQSto, Q_DIM(ahrsQSto),		// event queue
+					(void *)0, 0U);					// stack (unused)
 
     return QF::run(); // run the QF application
 }

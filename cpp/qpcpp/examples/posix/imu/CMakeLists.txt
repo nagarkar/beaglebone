@@ -1,5 +1,19 @@
+include(CheckIncludeFileCXX)
+
 cmake_minimum_required (VERSION 2.6)
+foreach(f CMAKE_INSTALL_PREFIX)
+	message("${f}:${${f}}")
+endforeach()
 set(PROJECT_NAME imu)
+
+function(fail_if_library_not_found _LIB)
+	find_library(LIB_VAR ${_LIB})
+	if(NOT LIB_VAR)
+		message(FATAL_ERROR "Required Library ${_LIB} not found")
+	#else()
+	#	message("Found required Library ${_LIB}")
+	endif()
+endfunction()
 
 ###### Project Options #########
 # Do you want to run QSPY on this application?
@@ -8,22 +22,15 @@ option(QSPY_ENABLED "Should we pull QSPY sources?" OFF)
 ###### Project properties and lib dependencies ###### 
 project (${PROJECT_NAME} C CXX)
 set(SOURCES active_objects.cpp bsp.cpp main.cpp qp_plugs.cpp)
-
-message("Finding required libs")
-	find_library(ROBOTICSCAPE roboticscape required)
-	find_library(RT rt required)
-	find_library(M m required)
-	message("Found roboticscape library here: ${ROBOTICSCAPE}")
-	message("Found librt library here: ${RT}")
-	message("Found libm library here: ${M}")
+set(DEPENDENCIES bbahrs roboticscape rt m ppcbproto dl grpc++_reflection grpc grpc++ protobuf)
+link_directories	(/usr/lib ${CMAKE_INSTALL_PREFIX}/lib)
+include_directories	(/usr/include ${CMAKE_INSTALL_PREFIX}/include)
 
 message("Set Compiler and linker flags...")
-	set(CMAKE_CXX_FLAGS "-fno-rtti -fno-exceptions -ffunction-sections -fdata-sections \
-        -Os -Wall -W -pthread -DNDEBUG \
+	set(CMAKE_CXX_FLAGS " -std=c++11 -g -Wall -Werror -pthread -DNDEBUG \
         -DQP_API_VERSION=9999")
 
-	set(CMAKE_C_FLAGS "-ffunction-sections -fdata-sections \
-        -Os -Wall -W -pthread -DNDEBUG \
+	set(CMAKE_C_FLAGS " -std=c++11 -g -Wall -Werror -pthread -DNDEBUG \
         -DQP_API_VERSION=9999")
 
 	set(CMAKE_EXE_LINKER_FLAGS, "-Wl,-Map,${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.map,--cref,--gc-sections")
@@ -81,6 +88,13 @@ list(APPEND SOURCES
   ${QS_SRCS}
 )
 
+### Protobufs
+#add_subdirectory("../../../../../common/protos" "protos/build")# "${CMAKE_CURRENT_BINARY_DIR}/common/protos")
+
 ###### Binaries and linking ###### 
+message("Finding dependencies")
+	foreach(f ${DEPENDENCIES})
+		fail_if_library_not_found(${f})
+	endforeach()
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} PUBLIC roboticscape rt m)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${DEPENDENCIES})
