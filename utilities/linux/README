@@ -1,0 +1,2 @@
+To shorten your shell prompt smartly, run the .short.pwd.sh script from this directory. The logic for hwo to shorten the prompt is in .smart.bash.prompt.py
+This logic has been pulled from https://goo.gl/irvB1A
