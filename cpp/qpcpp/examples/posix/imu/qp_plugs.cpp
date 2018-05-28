@@ -30,8 +30,6 @@ Q_DEFINE_THIS_FILE
 using namespace QP;
 using namespace std;
 
-//extern uint32_t const BSP_TICKS_PER_SEC;
-
 static struct termios l_tsav;
 
 //............................................................................

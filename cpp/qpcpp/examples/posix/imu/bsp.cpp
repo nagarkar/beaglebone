@@ -47,9 +47,7 @@ void BSP_ledOn(void) {
 static rc_imu_data_t imu_data;
 static rc_imu_config_t imu_config;
 static Q_cxyz complementary_filter = {1.0f, 0.0f, 0.0f, 0.0f};
-//static std::unique_ptr<Server> server;
-static CircularBuffer<Attitude> attitudeBuffer(10);
-static TelemetryServiceImpl service;
+static Server * server;
 
 void BSP_SetupIMU() {
 	cout << "Setting up IMU" << endl;
@@ -57,14 +55,13 @@ void BSP_SetupIMU() {
 	imu_config.enable_magnetometer = 1;
 	imu_config.show_warnings = 1;
 	rc_initialize_imu(&imu_data, imu_config);
-	cout << "IMU Setup done" << endl;
-	TelemetryServiceImpl::RunServer();
+	cout << "IMU Setup done" << endl;	
 }
 
 void BSP_IMUCleanup() {
-	//if (server != NULL) {
-	//	server->Shutdown();
-	//}
+	if (server != NULL) {
+		server->Shutdown();
+	}
 }
 
 static void normalizeQ(Q_cxyz &q) {
@@ -104,14 +101,22 @@ void BSP_PublishAttitude(void) {
 	
 	normalizeQ(complementary_filter);
 	
+	attitudeBuffer->put({ complementary_filter.c, complementary_filter.x, complementary_filter.y, complementary_filter.z, 0 });
+
 	if (counter % 100 == 0) {
 		counter = 0;		
-		/*cout << "AHRS:" << complementary_filter.c << "," << complementary_filter.x << "," << complementary_filter.y << "," << complementary_filter.z << "," << endl;
+		cout << "AHRS:" << complementary_filter.c << "," << complementary_filter.x << "," << complementary_filter.y << "," << complementary_filter.z << "," << endl;
+		cout << "AttitudeBuffer Size: " << attitudeBuffer->currentSize() << endl;
+		cout << "AttitudeBuffer isEmpty: " << attitudeBuffer->empty() << endl;
+		cout << "AttitudeBuffer isFull: " << attitudeBuffer->full() << endl;
+		Attitude att = attitudeBuffer->peek();
+		cout << "AttitudeBuffer top: Qc:" << att.Qc << ",Qx:" << att.Qx << endl;
+		/*
 		cout << "Acc:" << imu_data.accel[0] << "," << imu_data.accel[1] << ", " << imu_data.accel[2] << endl;
 		cout << "Gyr:" << imu_data.gyro[0] << "," << imu_data.gyro[1] << ", " << imu_data.gyro[2] << endl;
 		cout << "Mag:" << imu_data.mag[0] << "," << imu_data.mag[1] << ", " << imu_data.mag[2] << endl;*/
 	}
-	attitudeBuffer.put({ complementary_filter.c, complementary_filter.x, complementary_filter.y, complementary_filter.z, 0 });
+	
 	counter++;
 	//cout << "*" << flush;
 }

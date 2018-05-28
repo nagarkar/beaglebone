@@ -65,6 +65,22 @@ protected:
 //$enddecl${AOs::AHRS} #######################################################
 AHRS l_ahrs;
 
+//$declare${AOs::TelemetryServer} ############################################
+//${AOs::TelemetryServer} ....................................................
+class TelemetryServer : public QP::QActive {
+public:
+    CircularBuffer<Attitude> * attitudeBuffer;
+
+public:
+    TelemetryServer(CircularBuffer<Attitude> * buffer);
+
+protected:
+    static QP::QState initial(TelemetryServer * const me, QP::QEvt const * const e);
+    static QP::QState RUNNING(TelemetryServer * const me, QP::QEvt const * const e);
+};
+//$enddecl${AOs::TelemetryServer} ############################################
+CircularBuffer<Attitude> l_attitudeBuffer(10);
+TelemetryServer l_tServer(&l_attitudeBuffer);
 
 // ask QM to define the Blinky class (including the state machine) -----------
 //$define${AOs::Blinky} ######################################################
@@ -166,7 +182,40 @@ QP::QState AHRS::RUNNING(AHRS * const me, QP::QEvt const * const e) {
     return status_;
 }
 //$enddef${AOs::AHRS} ########################################################
+//$define${AOs::TelemetryServer} #############################################
+//${AOs::TelemetryServer} ....................................................
+//${AOs::TelemetryServer::TelemetryServer} ...................................
+TelemetryServer::TelemetryServer(CircularBuffer<Attitude> * buffer)
+    : QActive(Q_STATE_CAST(&TelemetryServer::initial)), attitudeBuffer(buffer)
+{}
+
+//${AOs::TelemetryServer::SM} ................................................
+QP::QState TelemetryServer::initial(TelemetryServer * const me, QP::QEvt const * const e) {
+    //${AOs::TelemetryServer::SM::initial}
+    return Q_TRAN(&RUNNING);
+}
+//${AOs::TelemetryServer::SM::RUNNING} .......................................
+QP::QState TelemetryServer::RUNNING(TelemetryServer * const me, QP::QEvt const * const e) {
+    QP::QState status_;
+    switch (e->sig) {
+        //${AOs::TelemetryServer::SM::RUNNING}
+        case Q_ENTRY_SIG: {
+            TelemetryServiceImpl::RunServer(me->attitudeBuffer, true /* wait */);
+            status_ = Q_HANDLED();
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&top);
+            break;
+        }
+    }
+    return status_;
+}
+//$enddef${AOs::TelemetryServer} #############################################
+
 
 // Opaque pointers
-QActive * const AO_Blinky = &l_blinky;
-QActive * const AO_AHRS = &l_ahrs;
+QActive * const AO_Blinky    = &l_blinky;
+QActive * const AO_AHRS      = &l_ahrs;
+QActive * const AO_TServer   = &l_tServer;
+CircularBuffer<Attitude> * attitudeBuffer = &l_attitudeBuffer;

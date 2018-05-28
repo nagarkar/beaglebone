@@ -53,7 +53,15 @@ public:
 		}
 	}
 
-	T get(void) const
+	T get(void)
+	{
+		return access(false); // no peek
+	}
+	T peek(void)
+	{
+		return access(true); // peek
+	}
+	T access(bool peek)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 
@@ -64,8 +72,9 @@ public:
 
 		//Read data and advance the tail (we now have a free space)
 		auto val = buf_[tail_];
-		tail_ = (tail_ + 1) % size_;
-
+		if (!peek) {
+			tail_ = (tail_ + 1) % size_;
+		}
 		return val;
 	}
 
@@ -90,6 +99,11 @@ public:
 	size_t size(void) const
 	{
 		return size_ - 1;
+	}
+
+	size_t currentSize(void) const
+	{
+		return ((head_ - tail_ + size_) % size_);
 	}
 
 private:

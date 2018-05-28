@@ -34,11 +34,18 @@
 #include "qpcpp.h"
 #include "bsp.h"
 #include "active_objects.h"
+#include "CircularBuffer.h"
+#include "Attitude.h"
+
+using namespace std;
+
+void * runTServer(void * ptr);
 
 int main() {
 	// Event queue storage
     static QEvt const *blinkyQSto[10];
 	static QEvt const *ahrsQSto[10]; 
+	//static QEvt const *tserverQSto[10];
 
     BSP_init(); // initialize the Board Support Package
     QF::init(); // initialize the framework and the underlying RT kernel
@@ -47,7 +54,14 @@ int main() {
     // dynamic event allocation not used, no call to QF::poolInit()
 
     // instantiate and start the active objects...
-    AO_Blinky->start(1U,                            // priority (must be unique)
+
+	/*
+	AO_TServer->start(3U,					// priority (must be unique)
+		tserverQSto, Q_DIM(tserverQSto),			// event queue
+		(void *)0, 0U);								// stack (unused)
+	*/
+
+	AO_Blinky->start(1U,                            // priority (must be unique)
                      blinkyQSto, Q_DIM(blinkyQSto), // event queue
                      (void *)0, 0U);                // stack (unused)
 
@@ -55,5 +69,14 @@ int main() {
 					ahrsQSto, Q_DIM(ahrsQSto),		// event queue
 					(void *)0, 0U);					// stack (unused)
 
+	pthread_t tserver;
+	int tserver_ret = pthread_create(&tserver, NULL, runTServer, (void*)attitudeBuffer);
+	cout << "Server Started" << tserver_ret << endl;
     return QF::run(); // run the QF application
+}
+
+void * runTServer(void * ptr) {
+	CircularBuffer<Attitude> * buffer = (CircularBuffer<Attitude> *)ptr;
+	TelemetryServiceImpl::RunServer(buffer, true /* wait */);
+	return 0;
 }

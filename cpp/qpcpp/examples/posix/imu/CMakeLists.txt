@@ -23,11 +23,10 @@ option(QSPY_ENABLED "Should we pull QSPY sources?" OFF)
 ###### Project properties and lib dependencies ###### 
 project (${PROJECT_NAME} CXX)
 
-set(SOURCES 
+set(shared_SOURCES 
 	active_objects.cpp 
 	bsp.cpp	
-	qp_plugs.cpp 
-	CircularBuffer.cpp
+	qp_plugs.cpp
 	TelemetryServiceImpl.cpp)
 
 set(DEPENDENCIES bbahrs roboticscape rt m ppcbproto dl grpc++_reflection grpc grpc++ protobuf)
@@ -91,7 +90,7 @@ set(QP_SRCS
         ${QP_SRC_DIR}/qf_time.cpp
         ${QP_PORT_SRC_DIR}/qf_port.cpp)
 
-list(APPEND SOURCES
+list(APPEND shared_SOURCES
   ${QP_SRCS}
   ${QS_SRCS}
 )
@@ -100,12 +99,16 @@ list(APPEND SOURCES
 #add_subdirectory("../../../../../common/protos" "protos/build")# "${CMAKE_CURRENT_BINARY_DIR}/common/protos")
 
 ###### Binaries and linking ###### 
+
+add_library(base STATIC ${shared_SOURCES}) 
+target_link_libraries(base PUBLIC ${DEPENDENCIES})
+
 message("Finding dependencies")
 	foreach(f ${DEPENDENCIES})
 		fail_if_library_not_found(${f})
 	endforeach()
-add_executable(${PROJECT_NAME} main.cpp ${SOURCES})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${DEPENDENCIES})
+add_executable(${PROJECT_NAME} main.cpp)
+target_link_libraries(${PROJECT_NAME} PUBLIC base ${DEPENDENCIES})
 
 add_executable(TelemetryTestService TelemetryTestService.cpp ${SOURCES})
-target_link_libraries(TelemetryTestService PUBLIC ${DEPENDENCIES})
+target_link_libraries(TelemetryTestService PUBLIC base ${DEPENDENCIES})

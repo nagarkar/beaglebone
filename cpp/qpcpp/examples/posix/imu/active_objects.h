@@ -19,17 +19,24 @@
 #ifndef active_objects_h
 #define active_objects_h
 
+#include "TelemetryServiceImpl.h"
+#include "CircularBuffer.h"
+#include "Attitude.h"
+
 using namespace QP;
 
 enum Signals {
     DUMMY_SIG = Q_USER_SIG,
     MAX_PUB_SIG,  // the last published signal
-
+    IMU_STARTED_SIG,
     TIMEOUT_SIG,
     MAX_SIG       // the last signal
 };
 
 extern QActive * const AO_Blinky; // opaque pointer
 extern QActive * const AO_AHRS; // opaque pointer
+
+extern CircularBuffer<Attitude> * attitudeBuffer;
+extern QActive * const AO_TServer; // opaque pointer
 
 #endif // active_objects_h

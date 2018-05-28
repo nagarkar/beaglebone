@@ -1,5 +1,8 @@
 #include "TelemetryServiceImpl.h"
-int main(int argn, char ** args) {
-	TelemetryServiceImpl::RunServer();
+
+static CircularBuffer<Attitude> dummy(1);
+
+int main(int argn, char ** args) {	
+	TelemetryServiceImpl::RunServer(&dummy, true);
 	return 0;
 }
