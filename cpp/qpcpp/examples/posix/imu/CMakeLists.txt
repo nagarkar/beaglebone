@@ -7,11 +7,12 @@ endforeach()
 set(PROJECT_NAME imu)
 
 function(fail_if_library_not_found _LIB)
+	unset(LIB_VAR CACHE)
 	find_library(LIB_VAR ${_LIB})
 	if(NOT LIB_VAR)
 		message(FATAL_ERROR "Required Library ${_LIB} not found")
-	#else()
-	#	message("Found required Library ${_LIB}")
+	else()
+		message("Found required Library ${_LIB}")
 	endif()
 endfunction()
 
@@ -20,8 +21,15 @@ endfunction()
 option(QSPY_ENABLED "Should we pull QSPY sources?" OFF)
 
 ###### Project properties and lib dependencies ###### 
-project (${PROJECT_NAME} C CXX)
-set(SOURCES active_objects.cpp bsp.cpp main.cpp qp_plugs.cpp)
+project (${PROJECT_NAME} CXX)
+
+set(SOURCES 
+	active_objects.cpp 
+	bsp.cpp	
+	qp_plugs.cpp 
+	CircularBuffer.cpp
+	TelemetryServiceImpl.cpp)
+
 set(DEPENDENCIES bbahrs roboticscape rt m ppcbproto dl grpc++_reflection grpc grpc++ protobuf)
 link_directories	(/usr/lib ${CMAKE_INSTALL_PREFIX}/lib)
 include_directories	(/usr/include ${CMAKE_INSTALL_PREFIX}/include)
@@ -96,5 +104,8 @@ message("Finding dependencies")
 	foreach(f ${DEPENDENCIES})
 		fail_if_library_not_found(${f})
 	endforeach()
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} main.cpp ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DEPENDENCIES})
+
+add_executable(TelemetryTestService TelemetryTestService.cpp ${SOURCES})
+target_link_libraries(TelemetryTestService PUBLIC ${DEPENDENCIES})

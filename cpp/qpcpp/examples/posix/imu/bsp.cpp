@@ -1,36 +1,3 @@
-//****************************************************************************
-// Product: Simple Blinky example, POSIX
-// Last updated for version 5.6.0
-// Last updated on  2015-12-26
-//
-//                    Q u a n t u m     L e a P s
-//                    ---------------------------
-//                    innovating embedded systems
-//
-// Copyright (C) Quantum Leaps, LLC. All rights reserved.
-//
-// This program is open source software: you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Alternatively, this program may be distributed and modified under the
-// terms of Quantum Leaps commercial licenses, which expressly supersede
-// the GNU General Public License and are specifically designed for
-// licensees interested in retaining the proprietary status of their code.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
-//
-// Contact information:
-// https://state-machine.com
-// mailto:info@state-machine.com
-//****************************************************************************
 #include "qpcpp.h"
 #include "bsp.h"
 #include "active_objects.h"
@@ -43,6 +10,9 @@
 #include <unistd.h>
 #include <math.h>
 #include <telemetry_service.grpc.pb.h>
+#include "TelemetryServiceImpl.h"
+#include "Attitude.h"
+#include "CircularBuffer.h"
 
 // This extern "C" is required because roboticscape.h does not wrap it's declarations in extern "C"
 extern "C"
@@ -77,6 +47,9 @@ void BSP_ledOn(void) {
 static rc_imu_data_t imu_data;
 static rc_imu_config_t imu_config;
 static Q_cxyz complementary_filter = {1.0f, 0.0f, 0.0f, 0.0f};
+//static std::unique_ptr<Server> server;
+static CircularBuffer<Attitude> attitudeBuffer(10);
+static TelemetryServiceImpl service;
 
 void BSP_SetupIMU() {
 	cout << "Setting up IMU" << endl;
@@ -85,6 +58,13 @@ void BSP_SetupIMU() {
 	imu_config.show_warnings = 1;
 	rc_initialize_imu(&imu_data, imu_config);
 	cout << "IMU Setup done" << endl;
+	TelemetryServiceImpl::RunServer();
+}
+
+void BSP_IMUCleanup() {
+	//if (server != NULL) {
+	//	server->Shutdown();
+	//}
 }
 
 static void normalizeQ(Q_cxyz &q) {
@@ -96,7 +76,6 @@ static void normalizeQ(Q_cxyz &q) {
 }
 
 void BSP_PublishAttitude(void) {	
-	//cout << "Publishing Attitude" << endl;
 	//cout << "." << flush;
 	static int counter = 0;
 	if (rc_read_accel_data(&imu_data) < 0) {
@@ -126,13 +105,13 @@ void BSP_PublishAttitude(void) {
 	normalizeQ(complementary_filter);
 	
 	if (counter % 100 == 0) {
-		counter = 0;
+		counter = 0;		
 		/*cout << "AHRS:" << complementary_filter.c << "," << complementary_filter.x << "," << complementary_filter.y << "," << complementary_filter.z << "," << endl;
 		cout << "Acc:" << imu_data.accel[0] << "," << imu_data.accel[1] << ", " << imu_data.accel[2] << endl;
 		cout << "Gyr:" << imu_data.gyro[0] << "," << imu_data.gyro[1] << ", " << imu_data.gyro[2] << endl;
 		cout << "Mag:" << imu_data.mag[0] << "," << imu_data.mag[1] << ", " << imu_data.mag[2] << endl;*/
 	}
+	attitudeBuffer.put({ complementary_filter.c, complementary_filter.x, complementary_filter.y, complementary_filter.z, 0 });
 	counter++;
-	//cout << "Publishing Attitude Done" << endl;
 	//cout << "*" << flush;
 }
