@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='telemetry_service.proto',
   package='telemetry',
   syntax='proto3',
-  serialized_pb=_b('\n\x17telemetry_service.proto\x12\ttelemetry\"\x12\n\x10\x41ttitudeQRequest\"C\n\x11\x41ttitudeQResponse\x12\n\n\x02Qc\x18\x01 \x01(\x02\x12\n\n\x02Qx\x18\x02 \x01(\x02\x12\n\n\x02Qy\x18\x03 \x01(\x02\x12\n\n\x02Qz\x18\x04 \x01(\x02\x32\xb3\x01\n\x10TelemetryService\x12K\n\x0cGetAttitudeQ\x12\x1b.telemetry.AttitudeQRequest\x1a\x1c.telemetry.AttitudeQResponse\"\x00\x12R\n\x11GetAttitudeStream\x12\x1b.telemetry.AttitudeQRequest\x1a\x1c.telemetry.AttitudeQResponse\"\x00\x30\x01\x42*\n\x14ppcbs.grpc.telemetryB\x10TelemetryServiceP\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x17telemetry_service.proto\x12\ttelemetry\"\x12\n\x10\x41ttitudeQRequest\"V\n\x11\x41ttitudeQResponse\x12\n\n\x02Qc\x18\x01 \x01(\x02\x12\n\n\x02Qx\x18\x02 \x01(\x02\x12\n\n\x02Qy\x18\x03 \x01(\x02\x12\n\n\x02Qz\x18\x04 \x01(\x02\x12\x11\n\ttimestamp\x18\x05 \x01(\x04\x32\xb3\x01\n\x10TelemetryService\x12K\n\x0cGetAttitudeQ\x12\x1b.telemetry.AttitudeQRequest\x1a\x1c.telemetry.AttitudeQResponse\"\x00\x12R\n\x11GetAttitudeStream\x12\x1b.telemetry.AttitudeQRequest\x1a\x1c.telemetry.AttitudeQResponse\"\x00\x30\x01\x42*\n\x14ppcbs.grpc.telemetryB\x10TelemetryServiceP\x01\x62\x06proto3')
 )
 
 
@@ -84,6 +84,13 @@ _ATTITUDEQRESPONSE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='timestamp', full_name='telemetry.AttitudeQResponse.timestamp', index=4,
+      number=5, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -97,7 +104,7 @@ _ATTITUDEQRESPONSE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=58,
-  serialized_end=125,
+  serialized_end=144,
 )
 
 DESCRIPTOR.message_types_by_name['AttitudeQRequest'] = _ATTITUDEQREQUEST
@@ -128,8 +135,8 @@ _TELEMETRYSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=128,
-  serialized_end=307,
+  serialized_start=147,
+  serialized_end=326,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetAttitudeQ',
