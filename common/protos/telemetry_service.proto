@@ -22,4 +22,5 @@ syntax = "proto3";
    float Qx= 2;
    float Qy= 3;
    float Qz= 4;
+   uint64 timestamp = 5;
  }
