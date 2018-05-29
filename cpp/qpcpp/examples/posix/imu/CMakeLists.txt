@@ -34,13 +34,13 @@ link_directories	(/usr/lib ${CMAKE_INSTALL_PREFIX}/lib)
 include_directories	(/usr/include ${CMAKE_INSTALL_PREFIX}/include)
 
 message("Set Compiler and linker flags...")
-	set(CMAKE_CXX_FLAGS " -std=c++11 -g -Wall -Werror -pthread -DNDEBUG \
+	set(CMAKE_CXX_FLAGS "-pg -std=c++11 -g -Wall -Werror -pthread -DNDEBUG \
         -DQP_API_VERSION=9999")
 
-	set(CMAKE_C_FLAGS " -std=c++11 -g -Wall -Werror -pthread -DNDEBUG \
+	set(CMAKE_C_FLAGS "-pg -std=c++11 -g -Wall -Werror -pthread -DNDEBUG \
         -DQP_API_VERSION=9999")
 
-	set(CMAKE_EXE_LINKER_FLAGS, "-Wl,-Map,${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.map,--cref,--gc-sections")
+	set(CMAKE_EXE_LINKER_FLAGS, "-pg -Wl,-Map,${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.map,--cref,--gc-sections")
 
 
 ###### QP Configuration ###### 

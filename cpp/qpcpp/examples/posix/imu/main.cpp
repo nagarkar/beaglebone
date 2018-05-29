@@ -69,6 +69,7 @@ int main() {
 					ahrsQSto, Q_DIM(ahrsQSto),		// event queue
 					(void *)0, 0U);					// stack (unused)
 
+	// Create a thread (https://goo.gl/ybJAeM) to run grpc.
 	pthread_t tserver;
 	int tserver_ret = pthread_create(&tserver, NULL, runTServer, (void*)attitudeBuffer);
 	cout << "Server Started" << tserver_ret << endl;

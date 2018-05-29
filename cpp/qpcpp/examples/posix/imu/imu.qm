@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model version="4.1.2" links="0">
+ <framework name="qpcpp"/>
+ <package name="AOs" stereotype="0x02">
+  <class name="Blinky" superclass="qpcpp::QActive">
+   <attribute name="m_timeEvt" type="QP::QTimeEvt" visibility="0x02" properties="0x00"/>
+   <operation name="Blinky" type="" visibility="0x00" properties="0x00">
+    <documentation>Blinky constructor</documentation>
+    <code>  : QActive(Q_STATE_CAST(&amp;Blinky::initial)),
+    m_timeEvt(this, TIMEOUT_SIG)</code>
+   </operation>
+   <statechart>
+    <initial target="../1">
+     <action>// arm the private time event to expire in 1/2s
+// and periodically every 1/2 second
+me-&gt;m_timeEvt.armX(BLINKY_TICKS, BLINKY_TICKS);</action>
+     <initial_glyph conn="2,3,5,1,20,4,-4">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="off">
+     <entry>BSP_ledOff();</entry>
+     <tran trig="TIMEOUT" target="../../2">
+      <tran_glyph conn="2,13,3,1,18,6,-2">
+       <action box="0,-2,8,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="2,5,16,10">
+      <entry box="1,2,12,4"/>
+     </state_glyph>
+    </state>
+    <state name="on">
+     <entry>BSP_ledOn();</entry>
+     <tran trig="TIMEOUT" target="../../1">
+      <tran_glyph conn="2,25,3,1,20,-15,-4">
+       <action box="0,-2,8,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="2,17,16,10">
+      <entry box="1,2,12,4"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="30,29"/>
+   </statechart>
+  </class>
+  <class name="AHRS" superclass="qpcpp::QActive">
+   <attribute name="m_timeEvt" type="QP::QTimeEvt" visibility="0x02" properties="0x00"/>
+   <operation name="AHRS" type="" visibility="0x00" properties="0x00">
+    <code>  : QActive(Q_STATE_CAST(&amp;AHRS::initial)),
+    m_timeEvt(this, TIMEOUT_SIG)</code>
+   </operation>
+   <statechart>
+    <initial target="../1">
+     <action>//me-&gt;m_timeEvt.armX(AHRS_TICKS, AHRS_TICKS);
+BSP_SetupIMU();</action>
+     <initial_glyph conn="33,11,5,0,-21,7">
+      <action box="0,-2,10,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="RUNNING">
+     <tran trig="TIMEOUT" target="..">
+      <action brief="collect and publish">BSP_PublishAttitude();</action>
+      <tran_glyph conn="24,22,1,2,15,15,-21,-8">
+       <action box="0,-2,10,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="7,18,17,11"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <class name="TelemetryServer" superclass="qpcpp::QActive">
+   <attribute name="attitudeBuffer" type="CircularBuffer&lt;Attitude&gt; *" visibility="0x00" properties="0x00"/>
+   <operation name="TelemetryServer" type="" visibility="0x00" properties="0x00">
+    <parameter name="buffer" type="CircularBuffer&lt;Attitude&gt; *"/>
+    <code>    : QActive(Q_STATE_CAST(&amp;TelemetryServer::initial)), attitudeBuffer(buffer)</code>
+   </operation>
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="15,4,5,0,9,12">
+      <action box="0,-2,10,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="RUNNING">
+     <entry>TelemetryServiceImpl::RunServer(me-&gt;attitudeBuffer, true /* wait */);</entry>
+     <state_glyph node="20,16,23,13">
+      <entry box="1,2,6,2"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+ </package>
+ <directory name=".">
+  <file name="active_objects.cpp">
+   <text>#include &quot;qpcpp.h&quot; // QP/C++ framework API
+#include &quot;bsp.h&quot;   // Board Support Package interface
+#include &quot;active_objects.h&quot;
+
+/**
+ * This file contains teh following format:
+ * &lt;declaration of AO type&gt;
+ * &lt;declaration of local variable of the type&gt;
+ *
+ * This way, the order of declarations matters, and earlier variables can be used later.
+ *
+ * At teh end of the file, all the variables are declared as opaque pointers to QActive objects,
+ * and used elsewhere, for instance, to start the AO in the main program.
+**/
+using namespace QP;
+
+$declare${AOs::Blinky}
+Blinky l_blinky;
+
+$declare${AOs::AHRS}
+AHRS l_ahrs;
+
+$declare${AOs::TelemetryServer}
+CircularBuffer&lt;Attitude&gt; l_attitudeBuffer(10);
+TelemetryServer l_tServer(&amp;l_attitudeBuffer);
+
+// ask QM to define the Blinky class (including the state machine) -----------
+$define${AOs::Blinky}
+$define${AOs::AHRS}
+$define${AOs::TelemetryServer}
+
+
+// Opaque pointers
+QActive * const AO_Blinky    = &amp;l_blinky;
+QActive * const AO_AHRS      = &amp;l_ahrs;
+QActive * const AO_TServer   = &amp;l_tServer;
+CircularBuffer&lt;Attitude&gt; * attitudeBuffer = &amp;l_attitudeBuffer;</text>
+  </file>
+  <file name="active_objects.h">
+   <text>#ifndef active_objects_h
+#define active_objects_h
+
+#include &quot;TelemetryServiceImpl.h&quot;
+#include &quot;CircularBuffer.h&quot;
+#include &quot;Attitude.h&quot;
+
+using namespace QP;
+
+enum Signals {
+    DUMMY_SIG = Q_USER_SIG,
+    MAX_PUB_SIG,  // the last published signal
+    IMU_STARTED_SIG,
+    TIMEOUT_SIG,
+    MAX_SIG       // the last signal
+};
+
+extern QActive * const AO_Blinky; // opaque pointer
+extern QActive * const AO_AHRS; // opaque pointer
+
+extern CircularBuffer&lt;Attitude&gt; * attitudeBuffer;
+extern QActive * const AO_TServer; // opaque pointer
+
+#endif // active_objects_h</text>
+  </file>
+  <file name="qp_plugs.cpp">
+   <text>#include &quot;qpcpp.h&quot;
+#include &quot;bsp.h&quot;
+#include &lt;iostream&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;      // for memcpy() and memset()
+#include &lt;sys/select.h&gt;
+#include &lt;termios.h&gt;
+#include &lt;unistd.h&gt;
+
+Q_DEFINE_THIS_FILE
+
+using namespace QP;
+using namespace std;
+
+static struct termios l_tsav;
+
+//............................................................................
+void QF::onStartup(void) {
+    struct termios tio;  // modified terminal attributes
+
+    tcgetattr(0, &amp;l_tsav); // save the current terminal attributes
+    tcgetattr(0, &amp;tio);    // obtain the current terminal attributes
+    tio.c_lflag &amp;= ~(ICANON | ECHO); // disable the canonical mode &amp; echo
+    tcsetattr(0, TCSANOW, &amp;tio);     // set the new attributes
+
+    QF_setTickRate(BSP_TICKS_PER_SEC); // set the desired tick rate
+}
+//............................................................................
+void QF::onCleanup(void) {
+    BSP_Cleanup();
+    cout &lt;&lt; endl &lt;&lt; &quot;Bye Bye!!!&quot; &lt;&lt; endl;
+    tcsetattr(0, TCSANOW, &amp;l_tsav); // restore the saved terminal attributes
+}
+//............................................................................
+void QP::QF_onClockTick(void) {
+    QF::TICK_X(0U, (void *)0);  // perform the QF clock tick processing
+
+    struct timeval timeout = { 0, 0 }; // timeout for select()
+    fd_set con; // FD set representing the console    FD_ZERO(&amp;con);
+    FD_SET(0, &amp;con);
+    // check if a console input is available, returns immediately
+    if (0 != select(1, &amp;con, 0, 0, &amp;timeout)) { // any descriptor set?
+        char ch;
+        read(0, &amp;ch, 1);
+        if (ch == '\33') { // ESC pressed?
+            QF::stop();
+        }
+        if (ch == 'a') { // ESC pressed?
+            BSP_Toggle_a();
+        }
+        if (ch == 'g') { // ESC pressed?
+            BSP_Toggle_g();
+        }
+        if (ch == 'm') { // ESC pressed?
+            BSP_Toggle_m();
+        }
+        if (ch == 'q') { // ESC pressed?
+            BSP_Toggle_q();
+        }
+        if (ch == 'd') { // ESC pressed?
+            BSP_Toggle_d();
+        }
+        if (ch == 's') { // ESC pressed?
+            BSP_Toggle_s();
+        }
+    }
+}
+//............................................................................
+extern &quot;C&quot; void Q_onAssert(char const * const module, int loc) {
+    cout &lt;&lt; &quot;Assertion failed in &quot; &lt;&lt; module
+              &lt;&lt; &quot;location &quot; &lt;&lt; loc &lt;&lt; endl;
+    QS_ASSERTION(module, loc, static_cast&lt;uint32_t&gt;(10000U));
+    exit(-1);
+}
+</text>
+  </file>
+ </directory>
+</model>

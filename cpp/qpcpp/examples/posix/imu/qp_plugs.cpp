@@ -45,6 +45,7 @@ void QF::onStartup(void) {
 }
 //............................................................................
 void QF::onCleanup(void) {
+    BSP_Cleanup();
     cout << endl << "Bye Bye!!!" << endl;
     tcsetattr(0, TCSANOW, &l_tsav); // restore the saved terminal attributes
 }
@@ -61,6 +62,24 @@ void QP::QF_onClockTick(void) {
         read(0, &ch, 1);
         if (ch == '\33') { // ESC pressed?
             QF::stop();
+        }
+        if (ch == 'a') { // ESC pressed?
+            BSP_Toggle_a();
+        }
+        if (ch == 'g') { // ESC pressed?
+            BSP_Toggle_g();
+        }
+        if (ch == 'm') { // ESC pressed?
+            BSP_Toggle_m();
+        }
+        if (ch == 'q') { // ESC pressed?
+            BSP_Toggle_q();
+        }
+        if (ch == 'd') { // ESC pressed?
+            BSP_Toggle_d();
+        }
+        if (ch == 's') { // ESC pressed?
+            BSP_Toggle_s();
         }
     }
 }

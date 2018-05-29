@@ -5,6 +5,7 @@
 #include <grpcpp/grpcpp.h>
 #include <telemetry_service.grpc.pb.h>
 #include "TelemetryServiceImpl.h"
+#include "bsp.h"
 
 using grpc::Server;
 using grpc::ServerWriter;
@@ -16,11 +17,12 @@ using telemetry::AttitudeQResponse;
 using telemetry::TelemetryService;
 using namespace std;
 
+
 Status TelemetryServiceImpl::GetAttitudeQ(ServerContext* context, const AttitudeQRequest* request, AttitudeQResponse* reply) {
 	//std::string prefix("Hello ");
-	cout << "GetAttitudeQ called" << endl;
+	//cout << "GetAttitudeQ called" << endl;
 	if (this->attitudeBuffer->empty()) {
-		cout << "attitude buffer empty" << endl;
+		//cout << "attitude buffer empty" << endl;
 		return Status::CANCELLED;
 	}
 	Attitude attitude = this->attitudeBuffer->get();
@@ -28,28 +30,28 @@ Status TelemetryServiceImpl::GetAttitudeQ(ServerContext* context, const Attitude
 	reply->set_qx(attitude.Qx);
 	reply->set_qy(attitude.Qy);
 	reply->set_qz(attitude.Qz);
+	reply->set_timestamp(attitude.timestamp);
+	//reply->set_timestamp(tspec.tv_sec * 1000 * 1000 * 1000 + tspec.tv_nsec);
 	return Status::OK;
 }
+
 Status TelemetryServiceImpl::GetAttitudeStream(ServerContext * context, const AttitudeQRequest * request, ServerWriter<::telemetry::AttitudeQResponse>* writer)
 {
 	AttitudeQResponse response;
-	while (true) {		
-		if (this->attitudeBuffer->empty()) {
-			cout << "Attitude Buffer empty, sleeping...." << endl;
-			sleep(1);
-		}
-		while (!this->attitudeBuffer->empty()) {
-			Attitude attitude = this->attitudeBuffer->get();
-			response.set_qc(attitude.Qc);
-			response.set_qx(attitude.Qx);
-			response.set_qy(attitude.Qy);
-			response.set_qz(attitude.Qz);
-			if (!writer->Write(response)) {
-				cout << "Failed to write response...." << endl;
-				break;
-			}
+	while (!this->attitudeBuffer->empty()) {
+		Attitude attitude = this->attitudeBuffer->get();
+		response.set_qc(attitude.Qc);
+		response.set_qx(attitude.Qx);
+		response.set_qy(attitude.Qy);
+		response.set_qz(attitude.Qz);			
+		//response.set_timestamp(tspec.tv_sec * 1000 * 1000 * 1000 + tspec.tv_nsec);
+		response.set_timestamp(attitude.timestamp);
+		if (!writer->Write(response)) {
+			cout << "GRPC Stream closed...." << endl;
+			return Status::CANCELLED;
 		}
 	}
+	return Status::OK;
 }
 
 std::unique_ptr<Server> TelemetryServiceImpl::RunServer(CircularBuffer<Attitude> * const buffer, bool wait) {

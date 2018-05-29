@@ -3,3 +3,4 @@ dbg
 spy
 bin
 obj
+**/gmon.out

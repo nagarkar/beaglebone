@@ -159,8 +159,7 @@ AHRS::AHRS()
 //${AOs::AHRS::SM} ...........................................................
 QP::QState AHRS::initial(AHRS * const me, QP::QEvt const * const e) {
     //${AOs::AHRS::SM::initial}
-    me->m_timeEvt.armX(AHRS_TICKS, AHRS_TICKS);
-
+    //me->m_timeEvt.armX(AHRS_TICKS, AHRS_TICKS);
     BSP_SetupIMU();
     return Q_TRAN(&RUNNING);
 }
