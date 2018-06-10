@@ -4,3 +4,4 @@ spy
 bin
 obj
 **/gmon.out
+*.bak

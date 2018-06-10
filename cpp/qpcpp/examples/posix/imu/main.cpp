@@ -36,12 +36,33 @@
 #include "active_objects.h"
 #include "CircularBuffer.h"
 #include "Attitude.h"
+#include <unistd.h>
 
 using namespace std;
 
 void * runTServer(void * ptr);
 
-int main() {
+void setOptions(int argn, char **argc) {
+	int c;
+	while ((c = getopt(argn, argc, "s::d::")) != -1) {
+		switch (c)
+		{
+		case 's':
+			quaternion_calculation_mode = SOFTWARE;
+			break;
+		case 'd':
+			quaternion_calculation_mode = DMP;
+			break;
+		default:
+			cout << "Unknown option" << endl;
+			abort();
+		}
+	}
+}
+
+int main(int argn, char ** argc) {
+	//setOptions(argn, argc);
+	quaternion_calculation_mode = SOFTWARE;
 	// Event queue storage
     static QEvt const *blinkyQSto[10];
 	static QEvt const *ahrsQSto[10]; 

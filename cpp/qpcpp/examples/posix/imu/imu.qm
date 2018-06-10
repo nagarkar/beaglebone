@@ -51,7 +51,9 @@ me-&gt;m_timeEvt.armX(BLINKY_TICKS, BLINKY_TICKS);</action>
    </operation>
    <statechart>
     <initial target="../1">
-     <action>//me-&gt;m_timeEvt.armX(AHRS_TICKS, AHRS_TICKS);
+     <action>if(quaternion_calculation_mode == SOFTWARE) {
+    me-&gt;m_timeEvt.armX(AHRS_TICKS, AHRS_TICKS);
+}
 BSP_SetupIMU();</action>
      <initial_glyph conn="33,11,5,0,-21,7">
       <action box="0,-2,10,2"/>

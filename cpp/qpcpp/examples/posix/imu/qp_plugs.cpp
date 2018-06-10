@@ -24,6 +24,7 @@
 #include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
+#include <errno.h>
 
 Q_DEFINE_THIS_FILE
 
@@ -52,17 +53,28 @@ void QF::onCleanup(void) {
 //............................................................................
 void QP::QF_onClockTick(void) {
     QF::TICK_X(0U, (void *)0);  // perform the QF clock tick processing
-
     struct timeval timeout = { 0, 0 }; // timeout for select()
-    fd_set con; // FD set representing the console    FD_ZERO(&con);
-    FD_SET(0, &con);
+    fd_set con; // FD set representing the console FD_ZERO(&con);
+	int stdin_fileno = fileno(stdin);
+    FD_SET(stdin_fileno, &con);	// Sets the bit for the file no '0' in the file descriptor set 'con'.
     // check if a console input is available, returns immediately
-    if (0 != select(1, &con, 0, 0, &timeout)) { // any descriptor set?
+	
+	int result = select(stdin_fileno + 1, &con, NULL, NULL, &timeout);
+    if (result == 1) { // any descriptor set?
+		/* Explanation of parameters passed to select:
+			int nfds; we want to only test fd = 0, so set nfds = 1 + 0 = 1 
+			fd_set *readFds; point to the fd_set we want to check for reading.
+			fd_set *writeFds, * exceptFds = 0 (NULL) to indicate we don't care.
+			timeout fields are set to zero to indicate we dont' want to block at all.
+		*/
         char ch;
         read(0, &ch, 1);
         if (ch == '\33') { // ESC pressed?
             QF::stop();
         }
+		if (ch == 'x') { // ESC pressed?
+			QF::stop();
+		}
         if (ch == 'a') { // ESC pressed?
             BSP_Toggle_a();
         }
@@ -81,7 +93,27 @@ void QP::QF_onClockTick(void) {
         if (ch == 's') { // ESC pressed?
             BSP_Toggle_s();
         }
-    }
+	}
+	/*
+	else if (result < 0) {
+		switch (errno) {
+		case EBADF:
+			cout << "EBADF" << endl;
+			break;
+		case EINTR:
+			cout << "EBADF" << endl;
+			break;
+		case EINVAL:
+			cout << "EBADF" << endl;
+			break; 
+		case ENOMEM:
+			cout << "EBADF" << endl;
+			break;
+		default:
+			cout << "Unknown error" << endl;
+		}
+	}
+	*/
 }
 //............................................................................
 extern "C" void Q_onAssert(char const * const module, int loc) {

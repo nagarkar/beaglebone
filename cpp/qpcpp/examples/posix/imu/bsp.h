@@ -43,6 +43,14 @@ uint32_t const AHRS_TICKS					= AHRS_CLOCK_PERIOD_MS/QP_CLOCK_PERIOD_MS;
 uint32_t const BLINKY_CLOCK_PERIOD_MS		= static_cast<uint32_t>(1000);	/* We want to blink every sec */
 uint32_t const BLINKY_TICKS					= BLINKY_CLOCK_PERIOD_MS / QP_CLOCK_PERIOD_MS;
 
+
+typedef enum {
+	DMP,
+	SOFTWARE
+} IMU_MODE;
+
+extern IMU_MODE quaternion_calculation_mode;
+
 typedef enum {
 	ACC,
 	GYRO,
