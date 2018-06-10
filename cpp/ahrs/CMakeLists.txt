@@ -29,3 +29,13 @@ message("Set Compiler and linker flags...")
 
 install(TARGETS ${PROJECT_NAME}  LIBRARY DESTINATION lib)
 install(FILES ${PUBLIC_HEADER_FILES} DESTINATION include/bbahrs)
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_PACKAGE_VERSION_MAJOR "0")
+set(CPACK_PACKAGE_VERSION_MINOR "2")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_DESCRIPTION "Configure UExhibitor and launch missions")
+set(CPACK_PACKAGE_CONTACT "Adrien BARRAL aba@robopec.com")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+
+include(CPack)
