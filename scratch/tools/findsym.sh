@@ -9,7 +9,14 @@ else
     echo "Usage: findsym.sh <symbol> dirname"
 fi
 for filename in $2/*.a; do
-  if nm --defined-only $filename 2>&1 | grep $1; then
+  if nm --defined-only -C -l $filename 2>&1 | grep $1; then
     echo $filename
   fi
 done
+
+for filename in $2/*.so; do
+  if nm --defined-only -D -C -l  $filename 2>&1 | grep $1; then
+    echo $filename
+  fi
+done
+
