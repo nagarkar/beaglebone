@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
+set(REQUIRED_PROTOBUF_VERSION 3.5.1)
 
 function(fail_if_library_not_found _LIB)
 	unset(LIB_VAR CACHE)
@@ -26,7 +27,7 @@ SET(PUBLIC_HEADER_FILES
 	)
 message("SOURCES: ${SOURCES}")
 message("PUBLIC_HEADER_FILES: ${PUBLIC_HEADER_FILES}")
-
+message("CMAKE_INSTALL_PREFIX}: ${CMAKE_INSTALL_PREFIX}")
 link_directories	(/usr/lib ${CMAKE_INSTALL_PREFIX}/lib)
 include_directories	(/usr/include ${CMAKE_INSTALL_PREFIX}/include)
 
@@ -54,7 +55,9 @@ endfunction()
 INCLUDE(FindProtobuf)
 FIND_PACKAGE(Protobuf REQUIRED)
 
+message("Generating  PROTOBUF_GENERATE_GRPC")
 PROTOBUF_GENERATE_GRPC(${PROTO_SRC})
+message("Generating  PROTOBUF_GENERATE_CPP")
 PROTOBUF_GENERATE_CPP(_DC1 _DC2 ${PROTO_SRC})
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})

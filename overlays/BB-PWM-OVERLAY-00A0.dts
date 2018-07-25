@@ -1,0 +1,30 @@
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/board/am335x-bbw-bbb-base.h>
+#include <dt-bindings/pinctrl/am33xx.h>
+
+/ {
+        compatible = "ti,beaglebone", "ti,beaglebone-black", "ti,beaglebone-green";
+
+        // identification
+        part-number = "BB-PWM-OVERLAY";
+        version = "00A0";
+
+        // resources this cape uses
+        exclusive-use =
+                "P9.21",                // pwm1
+                "P9.22",                // pwm2
+                "epwmss0";              // hardware mod used (see the top level dts)
+       
+        fragment@0 {
+                target = <0x250>;
+                __overlay__ {
+                        pwm@48300200 {
+				pinctrl-0 = <0x1bc 0x1c3>;
+				pinctrl-names = "default";
+			};
+		};
+	};
+};
+

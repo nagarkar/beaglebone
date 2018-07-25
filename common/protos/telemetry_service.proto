@@ -1,26 +1,87 @@
 syntax = "proto3";
  
- option java_multiple_files = true;
- option java_package = "ppcbs.grpc.telemetry";
- option java_outer_classname = "TelemetryService";
+option java_multiple_files = true;
+option java_package = "ppcbs.grpc.telemetry";
+option java_outer_classname = "TelemetryService";
  
- package telemetry;
- 
- // Interface exported by the server.
- service TelemetryService {
-   // Simple RPC
-   rpc GetAttitudeQ(AttitudeQRequest) returns (AttitudeQResponse) {}
- 
-   // Server to client streaming RPC
-   rpc GetAttitudeStream(AttitudeQRequest) returns (stream AttitudeQResponse) {}
- }
- 
- message AttitudeQRequest {}
+package telemetry;
 
- message AttitudeQResponse {
-   float Qc = 1;
-   float Qx= 2;
-   float Qy= 3;
-   float Qz= 4;
-   uint64 timestamp = 5;
- }
+message AttitudeQRequest {}
+
+message AttitudeQResponse {
+	float Qc 	= 1;
+   	float Qx	= 2;
+   	float Qy	= 3;
+   	float Qz	= 4;
+   	uint64 timestamp = 5;
+}
+
+enum Priority {
+	UNKNOWN_PRIORITY  = 0;
+  	HIGH 	= 1;
+  	MED 	= 50;
+  	LOW 	= 100;
+}
+
+enum Source {
+	UNKNOWN_SOURCE = 0;
+  	RGBD_CAMERA_FRONT 	= 1;
+  	HCSR04_SENSOR_FRONT 	= 2;
+  	DEPTH_CAMERA_FRONT 	= 3;
+}
+
+message HitEvent {
+	uint64 timestamp 	= 1;
+  	int32 priority 	= 2;
+}
+
+message HeadingAngle {
+	float yaw 	= 1;
+   	float pitch 	= 2;
+}
+
+message EventBase {
+	Source source 	= 1;
+   	int32 priority 	= 2;
+   	uint64 timestamp = 3;
+}
+
+message EventResponse {
+	Source source = 1;
+	uint64 timestamp = 2;
+}
+
+message HeadingEvent {
+	EventBase base 						= 1;
+   	HeadingAngle relativeAngleRadians 	= 2;
+   	float distance 						= 3;
+}
+
+
+message Waypoint {
+	float longitude 	= 1;
+  	float latitude 	= 2;
+}
+
+message Waypoints {
+	repeated Waypoint elements = 1;
+}
+
+message NoContent {}
+
+// Telemetry Service
+service TelemetryService {
+	// Simple RPC
+   	rpc GetAttitudeQ(AttitudeQRequest) returns (AttitudeQResponse) {}
+
+ 	// Server to client streaming RPC
+   	rpc GetAttitudeStream(AttitudeQRequest) returns (stream AttitudeQResponse) {}
+
+   	// Event Registration
+   	rpc hitEvent(HitEvent) returns (EventResponse) {}
+	rpc headingEvent(HeadingEvent) returns (EventResponse) {}
+
+	// Navigation
+	rpc setTarget(Waypoint) returns (NoContent) {}
+	rpc setWaypoints(Waypoints) returns (NoContent) {}
+}

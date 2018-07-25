@@ -17,7 +17,7 @@ end = raw_data.find("\n", raw_data.find("$GPRMC"))
 gps_record = raw_data[start:end].split(',')
 
 # Print record
-print "Lattitude: " + gps_record[3] + gps_record[4]
-print "Longitude: " + gps_record[5] + gps_record[6]
-print "Speed: " + gps_record[7]
-print "Course: " + gps_record[8]
+print('Lattitude: %s:%s' %(gps_record[3], gps_record[4]))
+print('Longitude: %s:%s' %(gps_record[5], gps_record[6]))
+print('Speed: %s' %gps_record[7])
+print('Course: %s' %gps_record[8])
